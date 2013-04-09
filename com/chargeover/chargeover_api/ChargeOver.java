@@ -69,7 +69,7 @@ public class ChargeOver
 			// not found
 			last_error = response.message;
 			return null;
-		} else if(response.response instanceof ArrayList) {
+		} else if(response.response instanceof Map) {
 			// Got our list, hooray!
 			return (Map<String, Object>)response.response;
 		} else {
@@ -198,6 +198,9 @@ public class ChargeOver
 	
 	public void prettyPrint(List<Map<String, Object>> l) 
 	{
+		if(l.isEmpty()) {
+			System.out.println("[Empty List]");
+		}
 		for (Map<String, Object> item : l) {
 			System.out.println("--------------------------");
 			prettyPrint(item); // not recursive!
