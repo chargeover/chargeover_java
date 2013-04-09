@@ -3,7 +3,6 @@ import com.chargeover.chargeover_api.ChargeOver;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.ArrayList;
 
 public class ChargeOver_Demo {
 
@@ -11,14 +10,18 @@ public class ChargeOver_Demo {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//Tester_URLLib.connect_with_URLlib();
-		
+
+		/* Fill these in with information from your chargeover API 
+		 * configuration
+		 */
 		String endpoint = "";
 		String user = "";
 		String pass = "";
 		
 		ChargeOver co = new ChargeOver(endpoint, user, pass, true);
 		String last = "";
+		
+		// sections commented out to prevent accidental database modification
 		
 		/*
 		// example find_all
