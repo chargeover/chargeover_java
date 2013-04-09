@@ -1,6 +1,7 @@
 package com.chargeover.chargeover_api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,11 +79,11 @@ public class ChargeOver
 		}
 	}
 	
-	public List<Map<String, Object>> find_all(Target obj)
+	public List<Map<String, Object>> find_all(Target obj, int limit, int offset)
 	{
 		String result = "";
 		
-		result = server.request(obj);
+		result = server.request(obj, null, limit, offset);
 		if(null == result) {
 			System.out.println(server.getLastError());
 			return null;
@@ -146,9 +147,23 @@ public class ChargeOver
 		
 		String result = server.submit(obj, server_data);
 		
-		System.out.println(result);
-		
-		return 0;
+		ServerResponse response = parser.parseServerResponse(result);
+		if(null == response) {
+			// no response
+			last_error = "Couldn't parse server response: " + result;
+			return -1;
+		} else if(response.code < 200 && response.code >= 300) {
+			// not found
+			last_error = response.message;
+			return -1;
+		} else if(response.response instanceof HashMap) {
+			// Got our Map, hooray!
+			return (int)((Map<String, Object>)response.response).values().toArray()[0];
+		} else {
+			// didn't give a null but didn't give a Map result...
+			last_error = "Weird json error.";
+			return -1;
+		}
 	}
 	
 	public int update(Target obj, int id, Map<String, String> data)
@@ -157,12 +172,32 @@ public class ChargeOver
 		
 		String result = server.submit(obj, id, server_data);
 		
-		System.out.println(result);
-		
-		return 0;
+		ServerResponse response = parser.parseServerResponse(result);
+		if(null == response) {
+			// no response
+			last_error = "Couldn't parse server response: " + result;
+			return -1;
+		} else if(response.code < 200 && response.code >= 300) {
+			// not found
+			last_error = response.message;
+			return -1;
+		} else if(response.response instanceof HashMap) {
+			// Got our Map, hooray!
+			return (int)((Map<String, Object>)response.response).values().toArray()[0];
+		} else {
+			// didn't give a null but didn't give a Map result...
+			last_error = "Weird json error.";
+			return -1;
+		}
 	}
 	
-	public void prettyPrint(ArrayList<Map<String, Object>> l) {
+	public String getLastError()
+	{
+		return last_error;
+	}
+	
+	public void prettyPrint(List<Map<String, Object>> l) 
+	{
 		for (Map<String, Object> item : l) {
 			System.out.println("--------------------------");
 			prettyPrint(item); // not recursive!

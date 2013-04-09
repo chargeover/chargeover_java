@@ -61,7 +61,7 @@ public class Server
 		
 		url_string = url_string + "/" + headers;
 		
-		System.out.println(url_string);
+		//System.out.println(url_string);
 		
 		URLConnection connection = prepareConnection(url_string);
 		
@@ -121,8 +121,9 @@ public class Server
 	}
 	
 	private String makeHeaders(Map<String, String> where, int limit, int offset) {
-		String headers = "?where=";
+		String headers = "?";
 		if (where != null) {
+			headers = "?where=";
 			for (String key : where.keySet()) {
 				String value = where.get(key);
 				String new_header = "";
@@ -187,7 +188,7 @@ public class Server
 			last_error = new String("Bad URL. " + e.getMessage());
 			return null;
 		} catch (IOException e) {
-			System.out.println(data);
+			//System.out.println(data);
 			exception_message = e.getMessage();
 			response = ((HttpURLConnection)connection).getErrorStream();
 		}
