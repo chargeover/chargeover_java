@@ -9,6 +9,9 @@ Configuration
 Look at Configuration/API & Webhooks in your ChargeOver instance for
 relevant configuration.
 
+See also:
+http://chargeover.com/documentation/integration/rest-api/
+
 Dependencies
 ------------
 
