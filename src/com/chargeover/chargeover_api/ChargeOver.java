@@ -74,7 +74,7 @@ public class ChargeOver
 			return (Map<String, Object>)response.response;
 		} else {
 			// didn't give a null but didn't give a list result...
-			last_error = "Weird json error.";
+			last_error = "Error: " + response.code + " - " + response.message + " | " + response.status + " | " + response.response;
 			return null;
 		}
 	}
@@ -104,7 +104,7 @@ public class ChargeOver
 			return (List<Map<String, Object>>) response.response;
 		} else {
 			// didn't give a null but didn't give a list result...
-			last_error = "Weird json error.";
+			last_error = "Error: " + response.code + " - " + response.message + " | " + response.status + " | " + response.response;
 			return null;
 		}
 	}
@@ -136,7 +136,7 @@ public class ChargeOver
 			return (List<Map<String, Object>>) response.response;
 		} else {
 			// didn't give a null but didn't give a list result...
-			last_error = "Weird json error.";
+			last_error = "Error: " + response.code + " - " + response.message;
 			return null;
 		}
 	}
@@ -161,7 +161,7 @@ public class ChargeOver
 			return (int)((Map<String, Object>)response.response).values().toArray()[0];
 		} else {
 			// didn't give a null but didn't give a Map result...
-			last_error = "Weird json error.";
+			last_error = "Error: " + response.code + " - " + response.message;
 			return -1;
 		}
 	}
@@ -171,6 +171,7 @@ public class ChargeOver
 		String server_data = parser.generateServerData(data);
 		
 		String result = server.submit(obj, id, server_data);
+		System.out.println(data);
 		
 		ServerResponse response = parser.parseServerResponse(result);
 		if(null == response) {
@@ -186,7 +187,7 @@ public class ChargeOver
 			return (int)((Map<String, Object>)response.response).values().toArray()[0];
 		} else {
 			// didn't give a null but didn't give a Map result...
-			last_error = "Weird json error.";
+			last_error = "Error: " + response.code + " - " + response.message;
 			return -1;
 		}
 	}

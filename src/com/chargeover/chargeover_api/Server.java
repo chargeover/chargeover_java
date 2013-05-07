@@ -3,12 +3,20 @@ package com.chargeover.chargeover_api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -31,6 +39,7 @@ public class Server
 		this.basic_auth = basic_auth;
 		this.last_error = null;
 		this.last_url = null;
+
 	}
 	
 	public String request(ChargeOver.Target target)
@@ -38,6 +47,9 @@ public class Server
 		String url_string = makeURL(target);
 		
 		URLConnection connection = prepareConnection(url_string);
+		if(null == connection) {
+			return null;
+		}
 		
 		return doGET(connection);
 	}
@@ -49,6 +61,9 @@ public class Server
 		url_string = url_string + "/" + id;
 		
 		URLConnection connection = prepareConnection(url_string);
+		if(null == connection) {
+			return null;
+		}
 		
 		return doGET(connection);
 	}
@@ -60,8 +75,6 @@ public class Server
 		String headers = makeHeaders(where, limit, offset);
 		
 		url_string = url_string + "/" + headers;
-		
-		//System.out.println(url_string);
 		
 		URLConnection connection = prepareConnection(url_string);
 		
@@ -181,6 +194,12 @@ public class Server
 		String data = "";
 		InputStream response = null;
 		String exception_message = null;
+
+		if(!this.basic_auth) {
+			String sig = makeSig(connection.getURL().toString(), null);
+			System.out.println(sig);
+			connection.setRequestProperty("Authorization", sig);
+		}
 		
 		try {
 			response = connection.getInputStream();
@@ -255,5 +274,61 @@ public class Server
 		
 		// now we read the result
 		return doGET(connection);
+	}
+	
+	private String makeSig(String url, String data) {
+        	
+		ArrayList<Character> tmp = new ArrayList<Character>(36);
+		for(char c = 'a'; c <= 'z'; c += 1) {
+			tmp.add(c);
+		}
+		for(char c = '0'; c <= '9'; c += 1) {
+			tmp.add(c);
+		}
+		Collections.shuffle(tmp);
+		String nonce = new String();
+		
+		for(Character c : tmp.subList(0, 8)) {
+			nonce += c;
+		}
+		
+		int client_time = (int)(System.currentTimeMillis() / 1000);
+		String delim = "||";
+		String msg = this.user + delim + url.toLowerCase() + delim + nonce + delim + client_time + delim;
+		System.out.println(msg);
+		if(null != data) {
+			msg = msg += data;
+		}
+		
+		Mac mac = null;
+		try {
+			SecretKeySpec key = new SecretKeySpec(this.pass.getBytes("UTF-8"), "HmacSHA256");
+			mac = Mac.getInstance("HmacSHA256");
+			mac.init(key);
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException | InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		byte[] digest = mac.doFinal(msg.getBytes());
+		String sig = "";
+		String hex = "";
+		for(byte b : digest) {
+			// need one byte, so the last two hex digits of the Integer
+			hex = Integer.toHexString(0xff & b);
+			// we get no leading zeros!
+			if(hex.length() == 1) {
+				sig += "0";
+			}
+			sig += hex;
+		}
+		System.out.println(sig);
+		// header = 'ChargeOver co_public_key="%s" co_nonce="%s" co_timestamp="%s" co_signature_method="HMAC-SHA256" 
+		// co_version="1.0" co_signature="%s"' %(self._user, nonce, client_time, sig)
+		String auth_header = "ChargeOver co_public_key=\"" + this.user + "\" co_nonce=\"" + nonce + 
+							 "\" co_timestamp=\"" + client_time + 
+							 "\" co_signature_method=\"HMAC-SHA256\" co_version=\"1.0\" co_signature=\"" + sig + "\"";
+		System.out.println(auth_header);
+		return auth_header;
 	}
 }
