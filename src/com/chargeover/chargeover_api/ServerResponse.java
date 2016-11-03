@@ -14,4 +14,5 @@ public class ServerResponse {
 	public String status;
 	public String message;
 	public Object response;
+	public Object details;
 }
